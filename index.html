@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+​
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.146.0/three.min.js"
+        integrity="sha512-Wft1v8e5sfJmolWfOyea3DBsf2qHZv6uBKLkvEYNSUo0wImWa9DYZH1lHU5y/UIfQu4xJ3xahqv1X4pvx3cv/w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://threejs.org/examples/js/loaders/OBJLoader.js"></script>
+​
+​
+</head>
+<style>
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+​
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+​
+    }
+</style>
+​
+<body >
+    <div class="container h-100 " id="main-container">
+        <div class="row h-100 justify-content-center align-items-center align-items-center">
+​
+            <div class="col-12 ">
+                <div class="progress">
+                    <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0"
+                        aria-valuemin="0" aria-valuemax="100">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id='canvas'>
+​
+    </canvas>
+​
+    <!-- Import maps polyfill -->
+    <!-- Remove this when import maps will be widely supported -->
+​
+​
+​
+    <script type="module">
+        console.clear();
+​
+        import { OrbitControls } from 'https://unpkg.com/three@0.122.0/examples/jsm/controls/OrbitControls.js';
+        // import { MTLLoader } from 'https://unpkg.com/three@0.122.0/examples/jsm/controls/OrbitControls.js';
+​
+        // not in use
+        // import { OBJLoader2 } from 'https://unpkg.com/browse/three@0.122.0/examples/jsm/loaders/OBJLoader2.js';
+        // import { GUI } from 'https://unpkg.com/three@0.122.0/examples/jsm/libs/dat.gui.module.js';
+      
+​
+        window.init = function() {
+​
+            var OBJFile = window.objFile
+            var pngFile = window.pngFile
+​
+            console.log({OBJFile,pngFile})
+​
+            // var OBJFile = 'http://192.168.1.16:5500/assets/texturedMesh.obj';
+            // var MTLFile = './assets/texturedMesh.mtl';
+            // var JPGFile = 'http://192.168.1.16:5500/assets/texture_1001.png';
+            
+            const progressbar = document.getElementById('progress-bar')
+            const mainContainer = document.getElementById('main-container')
+            const scene = new THREE.Scene();
+            let controls;
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            scene.background = new THREE.Color(0xf3f3f3)
+​
+​
+            const canvas = document.querySelector('#canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+​
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            var textureLoader = new THREE.TextureLoader();
+            var map = textureLoader.load(pngFile);
+            const material = new THREE.MeshBasicMaterial({ map: map });
+            const cube = new THREE.Mesh(geometry, material);
+            const loader = new THREE.OBJLoader();
+​
+​
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+            // controls.listenToKeyEvents(window); // optional
+​
+            //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+​
+            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            controls.dampingFactor = 0.05;
+​
+            controls.screenSpacePanning = false;
+​
+            controls.minDistance = 1;
+            controls.maxDistance = 5;
+​
+            controls.maxPolarAngle = Math.PI / 2;
+​
+            // load a resource
+            loader.load(
+                // resource URL
+                OBJFile,
+                // called when resource is loaded
+                function (object) {
+                    object.traverse(function (node) {
+                        if (node.isMesh) node.material = material;
+                    });
+                    scene.add(object);
+                },
+                // called when loading is in progresses
+                function (xhr) {
+                    progressbar.style.width = (xhr.loaded / xhr.total * 100) + '%'
+                    progressbar.textContent = (xhr.loaded / xhr.total * 100).toFixed(1) + '%'
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                    if ((xhr.loaded / xhr.total * 100).toFixed(1) == 100) {
+                        setTimeout(() => {
+                            mainContainer.style.display = 'none';
+                        }, 500)
+                    }
+​
+                },
+                // called when loading has errors
+                function (error) {
+​
+                    console.log('An error happened');
+​
+                }
+            );
+​
+            camera.position.z = 5;
+​
+            function animate() {
+                // controls.update();
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+​
+​
+​
+            };
+​
+            animate();
+​
+        }
+​
+        document.addEventListener('DOMContentLoaded', function() {
+           setTimeout(()=>{
+            window.init()
+           },1000)
+        }, false);
+​
+    </script>
+​
+​
+</body>
+​
+</html>
